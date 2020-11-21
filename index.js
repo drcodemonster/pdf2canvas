@@ -146,7 +146,7 @@ class Pdf2Canvas {
     return { stream, ext: 'jpg' };
   }
 
-  writeStreamToFile(readableStream, filePath) {
+  async writeStreamToFile(readableStream, filePath) {
     let filecontent;
     try {
       filecontent = await FileSystem.writeAsStringAsync(filePath, readableStream);
