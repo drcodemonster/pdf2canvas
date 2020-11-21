@@ -1,7 +1,6 @@
 'use strict';
-
-const fs = require('fs');
-const path = require('path');
+import * as FileSystem from 'expo-file-system';
+const { v4: uuidv4 } = require('uuid');
 const PDFJSLib = require('pdfjs-dist');
 const { createCanvas } = require('canvas');
 const NodeCanvasFactory = require('./NodeCanvasFactory');
@@ -22,7 +21,7 @@ class Pdf2Canvas {
       this.pdfBuffer = pdfPathOrBuffer;
     } else {
       this.pdfPath = pdfPathOrBuffer;
-      this.pdfBuffer = fs.readFileSync(pdfPathOrBuffer);
+      this.pdfBuffer = await FileSystem.readAsStringAsync(pdfPathOrBuffer);
     }
 
     this.rowData = new Uint8Array(this.pdfBuffer);
@@ -48,7 +47,6 @@ class Pdf2Canvas {
   async convert({
     pageRange = defaultPageRange,
     viewportScale = this.viewportScale || 1.5,
-    outputDir = './',
     isPNG = true,
     isDataURL = false,
     config,
@@ -104,7 +102,7 @@ class Pdf2Canvas {
         } else {
           const { stream, ext } = isPNG ? this.createPNGStream(canvas, config) : this.createJPEGStream(canvas, config);
 
-          const filePath = path.join(outputDir, `page-${x}.${ext}`);
+          const filePath = FileSystem.cacheDirectory + "decrytpted/" + uuidv4() +`page-${x}.${ext}`;
           await this.writeStreamToFile(stream, filePath);
           results.push(filePath);
         }
@@ -149,19 +147,13 @@ class Pdf2Canvas {
   }
 
   writeStreamToFile(readableStream, filePath) {
-    let writableStream = fs.createWriteStream(filePath);
-
-    readableStream.pipe(writableStream);
-
-    return new Promise(function (resolve, reject) {
-      readableStream.once('error', reject);
-      writableStream.once('error', reject);
-      writableStream.once('finish', resolve);
-    }).catch(function (err) {
-      readableStream = null; // Explicitly null because of v8 bug 6512.
-      writableStream.end();
-      throw err;
-    });
+    let filecontent;
+    try {
+      filecontent = await FileSystem.writeAsStringAsync(filePath, readableStream);
+    } catch (error) {
+        console.log(error);
+    }
+    return filecontent;
   }
 }
 
