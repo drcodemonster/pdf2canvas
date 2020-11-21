@@ -21,7 +21,7 @@ class Pdf2Canvas {
       this.pdfBuffer = pdfPathOrBuffer;
     } else {
       this.pdfPath = pdfPathOrBuffer;
-      this.pdfBuffer = await FileSystem.readAsStringAsync(pdfPathOrBuffer);
+      this.pdfBuffer = FileSystem.readAsStringAsync(pdfPathOrBuffer);
     }
 
     this.rowData = new Uint8Array(this.pdfBuffer);
